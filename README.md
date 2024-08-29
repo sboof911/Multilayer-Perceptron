@@ -1,1 +1,1 @@
-![Neural Network Explained](NeuralNetwork_explained.png)
+![Neural Network Explained](NeuralNetworkexplained.png)
