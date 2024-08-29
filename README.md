@@ -1,1 +1,1 @@
-![neural network explained](NeuralNetwork explained.png)
+![neural network explained](./NeuralNetwork explained.png)
