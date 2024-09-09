@@ -6,8 +6,6 @@ import numpy as np
 
 class DataProcess:
     _DataFrame : pd.DataFrame
-    _DataFrame_mean : pd.Series
-    _DataFrame_std : pd.Series
     _df_train : pd.DataFrame
     _df_test : pd.DataFrame
     _sorted_corr_list : list[tuple]
@@ -23,7 +21,6 @@ class DataProcess:
             if any(classs not in self._DataFrame.columns for classs in classes):
                 raise Exception(f"One or more class columns: ==> {classes} <== not in the DataFrame columns. DataFrame columns: {self._DataFrame.columns}")
         self.CleanData(classes)
-        self.StandardizeData(classes)
         self.plot_Data(pngPlot)
         self.SortedCorrelationFeatures(classes)
         self.get_top_homogeneous_features()
@@ -35,18 +32,6 @@ class DataProcess:
             df = df.drop(columns=classes)
         df.fillna(df.mean(), inplace=True)
         df.drop_duplicates(inplace=True)
-        if classes is not None:
-            df[classes] = self._DataFrame[classes]
-        self._DataFrame = df
-
-    def StandardizeData(self, classes):
-        print("Standarizing Data")
-        df = self._DataFrame.copy()
-        if classes is not None:
-            df = df.drop(columns=classes)
-        self._DataFrame_std = pd.Series(df.std(), name='std').to_frame().T
-        self._DataFrame_mean = pd.Series(df.mean(), name='mean').to_frame().T
-        df = (df - df.mean()) / df.std()
         if classes is not None:
             df[classes] = self._DataFrame[classes]
         self._DataFrame = df
@@ -135,10 +120,6 @@ class DataProcess:
         print(directory_path + "/train.csv Created!")
         self._df_test.to_csv(directory_path + "/test.csv")
         print(directory_path + "/test.csv Created!")
-        mean_std = pd.concat([self._DataFrame_mean, self._DataFrame_std])
-        print(mean_std)
-        mean_std.to_csv(directory_path + "/mean_std.csv")
-        print(directory_path + "/mean_std.csv Created!")
 
 if __name__ == "__main__":
     try:

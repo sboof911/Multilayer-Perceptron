@@ -6,6 +6,8 @@ from utils.layers import layer, Layers, loss_compute
 class CNN_Model:
     def __init__(self):
         self._Network : list = []
+        self._DataFrame_std = None
+        self._DataFrame_mean = None
 
     def createNetwork(self, layers):
         if len(layers) - 2 < 2:
@@ -21,12 +23,29 @@ class CNN_Model:
 
     def back_propagation(self, X, y_true, learning_rate):
         y_pred = self.forward_propagation(X)
-        # Compute the initial gradient
-        dA = - (np.divide(y_true, y_pred) - np.divide(1 - y_true, 1 - y_pred))
 
         # Backpropagation through layers
         for layer in reversed(self._Network):
-            dA = layer.backward(X, dA, learning_rate)
+            # Compute the initial gradient
+            dA = -2 *(y_true - y_pred)
+            layer.backward(X, dA, learning_rate)
+
+    def StandardizeData(self, DataFrame : pd.DataFrame, classes):
+        print("Standarizing Data")
+        df = DataFrame.copy()
+        if classes is not None:
+            df = df.drop(columns=classes)
+        if self._DataFrame_std is None and self._DataFrame_mean is None:
+            self._DataFrame_std = df.std()
+            self._DataFrame_mean = df.mean()
+        df = (df - self._DataFrame_mean) / self._DataFrame_std
+        if classes is not None:
+            df[classes] = DataFrame[classes]
+
+        return df
+
+    def one_hot_encoded(self, y, num_classes):
+        return np.eye(num_classes)[y]
 
     def fit(self, data_train, data_valid, loss='binaryCrossentropy', learning_rate=0.1, batch_size=8, epochs=84):
         X_train, y_train = data_train
@@ -39,6 +58,7 @@ class CNN_Model:
             np.random.shuffle(indices)
             X_train = X_train[indices]
             y_train = y_train[indices]
+            y_train = np.eye(np.unique(y_train).size)[y_train]
 
             # Train in batches
             for start in range(0, X_train.shape[0], batch_size):
@@ -47,12 +67,14 @@ class CNN_Model:
                 y_batch = y_train[start:end]
 
                 y_pred = self.forward_propagation(X_batch)
-                loss_value = compute_loss.loss_function(y_batch, y_pred, loss)
+                print(y_pred.shape)
+                print('-' * 80)
+                loss_value = compute_loss.loss_function(y_batch, y_pred)
                 self.back_propagation(X_batch, y_batch, learning_rate)
 
             # Validation loss
             y_valid_pred = self.forward_propagation(X_valid)
-            valid_loss = compute_loss.loss_function(y_valid, y_valid_pred, loss)
+            valid_loss = compute_loss.loss_function(y_valid, y_valid_pred)
 
             # Log progress
             print(f"epoch {epoch+1}/{epochs} - loss: {loss_value:.4f} - val_loss: {valid_loss:.4f}")
@@ -69,7 +91,7 @@ if __name__ == "__main__":
     try:
         # Example usage
         X_train = np.random.rand(100, 10)  # 100 samples, 10 features
-        y_train = np.random.randint(0, 4, 100)  # 100 samples, 5 output nodes for multilabel binary classification
+        y_train = np.random.randint(0, 2, 100)  # 100 samples, 5 output nodes for multilabel binary classification
         layers = Layers(X_train.shape[1], np.unique(y_train).size)
 
         model = CNN_Model()
@@ -79,7 +101,7 @@ if __name__ == "__main__":
             layers.DenseLayer(24, activation='sigmoid', weights_initializer='heUniform'),
             layers.DenseLayer(24, activation='sigmoid', weights_initializer='heUniform'),
             layers.DenseLayer(24, activation='sigmoid', weights_initializer='heUniform'),
-            layers.DenseLayer(4, activation='softmax', weights_initializer='heUniform')
+            layers.DenseLayer(2, activation='sigmoid', weights_initializer='heUniform')
             ])
 
         # Train the model
