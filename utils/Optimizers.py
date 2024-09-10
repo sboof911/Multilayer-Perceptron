@@ -15,21 +15,6 @@ class Activations:
         exp_y = np.exp(y - np.max(y))
         return exp_y / np.sum(exp_y, axis=1, keepdims=True)
 
-    def softmax_derivative(self, y):
-        s = self.softmax_function(y)
-        n, m = s.shape
-        jacobian = np.zeros((n, m, m))
-        
-        for i in range(n):
-            for j in range(m):
-                for k in range(m):
-                    if j == k:
-                        jacobian[i, j, k] = s[i, j] * (1 - s[i, k])
-                    else:
-                        jacobian[i, j, k] = -s[i, j] * s[i, k]
-
-        return jacobian
-
     def ReLU_function(self, y):
         return np.maximum(0, y)
 
