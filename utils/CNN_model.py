@@ -14,7 +14,6 @@ class CNN_Model:
 
     def createNetwork(self, layers : list):
         self._Network = layers
-        print(f"Network created with {len(layers)} layers.")
 
     def forward_propagation(self, X):
         output = X
@@ -32,7 +31,6 @@ class CNN_Model:
             dA = layer.backward(dA, learning_rate)
 
     def StandardizeData(self, X : np.ndarray):
-        print("Standarizing Data")
         if self._X_train_mean is None and self._X_train_std is None:
             self._X_train_mean = X.mean(axis=0)
             self._X_train_std = X.std(axis=0)
@@ -64,7 +62,9 @@ class CNN_Model:
     def fit(self, data_train, data_valid, loss='binaryCrossentropy', learning_rate=0.1, batch_size=8, epochs=84):
         X_train_data, y_train_data = self.NormalizeData(data_train)
         X_valid, y_valid = self.NormalizeData(data_valid)
-        compute_loss = loss_compute(loss)
+        print(f"x_train shape : {X_train_data.shape}")
+        print(f"x_valid shape : {X_valid.shape}")
+        self._compute_loss = loss_compute(loss)
 
         for epoch in range(epochs):
             # Shuffle training data
@@ -81,12 +81,12 @@ class CNN_Model:
                 y_batch = y_train[start:end]
 
                 y_pred = self.forward_propagation(X_batch)
-                loss_value = compute_loss.loss_function(y_batch, y_pred)
+                loss_value = self._compute_loss.loss_function(y_batch, y_pred)
                 self.back_propagation(X_batch, y_batch, learning_rate)
 
             # Validation loss
             y_valid_pred = np.argmax(self.forward_propagation(X_valid), axis=1)
-            valid_loss = compute_loss.loss_function(y_valid, y_valid_pred)
+            valid_loss = self._compute_loss.loss_function(y_valid, y_valid_pred)
             self._plot_curve.loss_array.append(valid_loss)
             self._plot_curve.acurracy_aray.append(self.accuracy(y_valid, y_valid_pred))
 
@@ -99,16 +99,20 @@ class CNN_Model:
     def predict(self, X):
         X = self.StandardizeData(X)
         y_pred = self.forward_propagation(X)
-        predicted_classes = [np.argmax(pred) for pred in y_pred]
+        predicted_classes = np.argmax(y_pred, axis=1)
 
         return self.indices_to_classes(predicted_classes)
 
-    def accuracy(self, true_labels, predicted_labels):
-        true_labels = np.array(true_labels)
-        predicted_labels = np.array(predicted_labels)
+    def accuracy(self, y_valid, y_pred, ret_loss = False):
+        y_valid = np.array(y_valid)
+        y_pred = np.array(y_pred)
+        if y_valid.shape != y_pred.shape:
+            raise ValueError("The length of y_valid and y_pred must be the same.")
+        accuracy = np.mean(y_valid == y_pred) * 100
+        if ret_loss == True:
+            y_valid = self.map_classes_to_indices(y_valid)
+            y_pred = self.map_classes_to_indices(y_pred)
+            loss = self._compute_loss.loss_function(y_valid, y_pred)
+            accuracy = (accuracy, loss)
 
-        if true_labels.shape != predicted_labels.shape:
-            raise ValueError("The length of true_labels and predicted_labels must be the same.")
-
-        accuracy = np.mean(true_labels == predicted_labels) * 100
         return accuracy

@@ -13,14 +13,18 @@ def args():
 
     return pd.read_csv(args.data_test)
 
+classes = "class"
+
 if __name__ == "__main__":
     try:
         DataFrame = args()
         with open('model.pkl', 'rb') as file:
             model : CNN_Model = pickle.load(file)
 
-        prediction = model.predict(np.array(DataFrame.drop("class", axis=1)))
+        prediction = model.predict(np.array(DataFrame.drop(classes, axis=1)))
+        accuracy, loss = model.accuracy(np.array(DataFrame[classes]), prediction, True)
         print(prediction)
-        print(f"Accuracy of the model is: {model.accuracy(np.array(DataFrame["class"]), prediction):.2f}%")
+        print(f"Accuracy of the model is: {accuracy:.2f}%")
+        print(f"loss : {loss:.4f}")
     except Exception as e:
         print(f"Error: {e}")
