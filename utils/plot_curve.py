@@ -23,6 +23,7 @@ class plot_curve:
         plt.grid(True)
         plt.savefig(filename)
         plt.close()
+        print(f"loss plot png file created in {filename}")
 
     def plot_accuracy(self, filename='accuracy_curve.png'):
         plt.figure(figsize=(10, 5))
@@ -34,6 +35,7 @@ class plot_curve:
         plt.grid(True)
         plt.savefig(filename)
         plt.close()
+        print(f"loss plot png file created in {filename}")
 
     def save(self):
         self.plot_loss()
