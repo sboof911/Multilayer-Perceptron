@@ -2,3 +2,4 @@
 *.png
 *test*
 __pycache__
+*.pkl

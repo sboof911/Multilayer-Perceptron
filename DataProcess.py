@@ -94,6 +94,7 @@ class DataProcess:
     def SplitShuffle_df(self, train_size=80):
         shuffled_indices = np.random.permutation(self._DataFrame.index)
         df_shuffled = self._DataFrame.reindex(shuffled_indices).reset_index(drop=True)
+        df_shuffled.index.name = 'index'
         split_index = int((train_size / 100) * len(df_shuffled))
 
         self._df_train = df_shuffled.iloc[:split_index]

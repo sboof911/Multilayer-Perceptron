@@ -1,5 +1,5 @@
 import numpy as np
-from utils.Optimizers import Activations, Weights_Algos, loss_compute
+from .Optimizers import Activations, Weights_Algos
 
 class layer:
     def __init__(self, input_layer : bool = False, output_layer : bool = False,
@@ -17,8 +17,8 @@ class layer:
         self._previous_layer_X = X
         if self._input_layer:
             return X
-        Z = np.dot(X, self._weights) + self._biases
-        return self._activation.Activation_function(Z)
+        self._Z = np.dot(X, self._weights) + self._biases
+        return self._activation.Activation_function(self._Z)
 
     def backward(self, dA, learning_rate):
         if self._input_layer:
@@ -28,8 +28,7 @@ class layer:
         if self._output_layer:
             dZ = dA
         else:
-            Z = np.dot(X, self._weights) + self._biases
-            dZ = dA * self._activation.Activation_derivative(Z)
+            dZ = dA * self._activation.Activation_derivative(self._Z)
         dW = np.dot(X.T, dZ) / X.shape[0]
         db = np.sum(dZ, axis=0) / X.shape[0]
 
@@ -41,7 +40,7 @@ class layer:
 
 
 class Layers:
-    AvailableActivationFunctions = ['sigmoid', 'ReLU', 'softplus', 'softmax']
+    AvailableActivationFunctions = ['sigmoid','softmax']
     AvailableWeightsAlgos = ['heUniform']
 
     def __init__(self):
